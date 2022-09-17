@@ -2,8 +2,7 @@
 
 The swiss army knife for genome assembly.
 
-**gfastats** is a single fast and exhaustive tool for **summary statistics** and simultaneous \*fa\* (fasta, fastq, gfa [.gz]) genome assembly file **manipulation**.
-**gfastats** also allows seamless fasta<>fastq<>gfa[.gz] conversion.
+**gfastats** is a single fast and exhaustive tool for **summary statistics** and simultaneous \*fa\* (fasta, fastq, gfa [.gz]) genome assembly file **manipulation**. **gfastats** also allows seamless fasta<>fastq<>gfa[.gz] conversion. It has been tested in genomes even >100Gbp.
 
 Typical fast\* metrics include:
 
@@ -36,7 +35,7 @@ Importantly, the filtered input can be outputted in any \*fa\* (fasta, fastq, gf
 
 ## Installation
 
-Either download one of the releases or `git clone https://github.com/vgl-hub/gfastats.git` and `make` in `gfastats` folder.
+Either download one of the releases or `git clone https://github.com/vgl-hub/gfastats.git --recursive` and `make -j` in `gfastats` folder.
 
 ## Usage
 
@@ -91,4 +90,4 @@ Gfastats: conversion, evaluation and manipulation of genome sequences using asse
 
 Giulio Formenti, Linelle Abueg, Angelo Brajuka, Nadolina Brajuka, Cristo Gallardo, Alice Giani, Olivier Fedrigo, Erich D. Jarvis
 
-doi: https://doi.org/10.1101/2022.03.24.485682
+doi: https://doi.org/10.1093/bioinformatics/btac460

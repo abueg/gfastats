@@ -1,27 +1,63 @@
-CC = g++
-INCLUDE_DIR = -I./include -I./include/zlib
+CXX = g++
+INCLUDE_DIR = -I./include -Igfalibs/include
+WARNINGS = -Wall -Wextra
 
-CFLAGS += -g -Wall -std=gnu++11 -O3 $(INCLUDE_DIR)
+CXXFLAGS = -g -std=gnu++14 -O3 $(INCLUDE_DIR) $(WARNINGS)
 
 TARGET = gfastats
-GENERATE_TARGET = gfastats-generate-tests
-TEST_TARGET = gfastats-validate
-BUILD_PATH = build/bin
-SOURCE_PATH = src
+TEST_TARGET = validate
+GENERATE_TARGET = generate-tests
+RANDOM_FASTA_TARGET = generate-random-fasta
+BUILD = build/bin
+SOURCE = src
+INCLUDE = include
+BINDIR := $(BUILD)/.o
 
-LIBS += -lz
+LIBS = -lz
+LDFLAGS= -pthread
 
+#gfalibs
+GFALIBS_DIR := $(CURDIR)/gfalibs
 
-$(TARGET): $(SOURCE_PATH)/$(TARGET).cpp
-	mkdir -p $(BUILD_PATH)
-	$(CC) $(CFLAGS) -o $(BUILD_PATH)/$(TARGET) $(SOURCE_PATH)/$(TARGET).cpp $(LIBS)
-	$(CC) $(CFLAGS) -o $(BUILD_PATH)/$(TEST_TARGET) $(SOURCE_PATH)/$(TEST_TARGET).cpp $(LIBS)
-	$(CC) $(CFLAGS) -o $(BUILD_PATH)/$(GENERATE_TARGET) $(SOURCE_PATH)/$(GENERATE_TARGET).cpp $(LIBS)
+OBJS := main input
+BINS := $(addprefix $(BINDIR)/, $(OBJS))
 
-validate:
-	mkdir -p $(BUILD_PATH)
-	$(CC) $(CFLAGS) -o $(BUILD_PATH)/$(TEST_TARGET) $(SOURCE_PATH)/$(TEST_TARGET).cpp $(LIBS)
-	$(CC) $(CFLAGS) -o $(BUILD_PATH)/$(GENERATE_TARGET) $(SOURCE_PATH)/$(GENERATE_TARGET).cpp $(LIBS)
+head: $(BINS) gfalibs | $(BUILD)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(BUILD)/$(TARGET) $(wildcard $(BINDIR)/*) $(GFALIBS_DIR)/*.o $(LIBS)
+	
+debug: CXXFLAGS += -DDEBUG
+debug: CCFLAGS += -DDEBUG
+debug: head
+
+all: head validate regenerate random_fasta
+
+$(OBJS): %: $(BINDIR)/%
+	@
+$(BINDIR)%: $(SOURCE)/%.cpp $(INCLUDE)/%.h | $(BINDIR)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c $(SOURCE)/$(notdir $@).cpp -o $@
+	
+.PHONY: gfalibs
+gfalibs:
+	$(MAKE) -j -C $(GFALIBS_DIR) CXXFLAGS="$(CXXFLAGS)"
+
+validate: | $(BUILD)
+	$(CXX) $(CXXFLAGS) -o $(BUILD)/$(TARGET)-$(TEST_TARGET) $(SOURCE)/$(TEST_TARGET).cpp $(LIBS)
+	
+regenerate: | $(BUILD)
+	$(CXX) $(CXXFLAGS) -o $(BUILD)/$(TARGET)-$(GENERATE_TARGET) $(SOURCE)/$(GENERATE_TARGET).cpp $(LIBS)
+
+random_fasta: | $(BUILD)
+	$(CXX) $(CXXFLAGS) -o $(BUILD)/$(TARGET)-$(RANDOM_FASTA_TARGET) $(SOURCE)/$(RANDOM_FASTA_TARGET).cpp $(LIBS)
+
+$(BUILD):
+	-mkdir -p $@
+
+$(BINDIR):
+	-mkdir -p $@
+	
+debug: CXXFLAGS += -DDEBUG -O0
+debug: head
 
 clean:
 	$(RM) -r build
+	$(MAKE) -C $(GFALIBS_DIR) clean
